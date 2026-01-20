@@ -63,6 +63,7 @@ struct HighScoreRow: View {
                 .frame(width: 100, alignment: .leading)
         }
         .font(.system(.body, design: .monospaced))
+        .foregroundColor(.black)
     }
 }
 
