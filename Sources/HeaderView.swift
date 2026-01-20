@@ -79,7 +79,7 @@ struct SmileyButton: View {
 
     @ViewBuilder
     private var smileyFace: some View {
-        let faceSize: CGFloat = 28
+        let faceSize: CGFloat = 26
         ZStack {
             // Yellow face
             Circle()
@@ -92,7 +92,7 @@ struct SmileyButton: View {
 
             switch gameState {
             case .ready, .playing:
-                // Normal smiley - Eyes
+                // Eyes
                 Circle()
                     .fill(Color.black)
                     .frame(width: 3, height: 3)
@@ -103,72 +103,84 @@ struct SmileyButton: View {
                     .frame(width: 3, height: 3)
                     .offset(x: 5, y: -4)
 
-                // Smile
-                Path { path in
-                    path.addArc(center: CGPoint(x: size/2, y: size/2 + 2),
-                               radius: 7,
-                               startAngle: .degrees(30),
-                               endAngle: .degrees(150),
-                               clockwise: true)
-                }
-                .stroke(Color.black, lineWidth: 1.5)
+                // Smile - use a simple arc shape
+                SmileArc(startAngle: .degrees(20), endAngle: .degrees(160))
+                    .stroke(Color.black, lineWidth: 1.5)
+                    .frame(width: 14, height: 14)
+                    .offset(y: 2)
 
             case .won:
-                // Sunglasses cool face
+                // Sunglasses
                 Rectangle()
                     .fill(Color.black)
-                    .frame(width: 8, height: 4)
+                    .frame(width: 7, height: 3)
                     .offset(x: -5, y: -4)
 
                 Rectangle()
                     .fill(Color.black)
-                    .frame(width: 8, height: 4)
+                    .frame(width: 7, height: 3)
                     .offset(x: 5, y: -4)
 
                 Rectangle()
                     .fill(Color.black)
-                    .frame(width: 6, height: 1.5)
+                    .frame(width: 4, height: 1.5)
                     .offset(x: 0, y: -4)
 
                 // Smile
-                Path { path in
-                    path.addArc(center: CGPoint(x: size/2, y: size/2 + 2),
-                               radius: 7,
-                               startAngle: .degrees(30),
-                               endAngle: .degrees(150),
-                               clockwise: true)
-                }
-                .stroke(Color.black, lineWidth: 1.5)
+                SmileArc(startAngle: .degrees(20), endAngle: .degrees(160))
+                    .stroke(Color.black, lineWidth: 1.5)
+                    .frame(width: 14, height: 14)
+                    .offset(y: 2)
 
             case .lost:
-                // Dead face X eyes
-                Path { path in
-                    path.move(to: CGPoint(x: size/2 - 8, y: size/2 - 7))
-                    path.addLine(to: CGPoint(x: size/2 - 2, y: size/2 - 1))
-                    path.move(to: CGPoint(x: size/2 - 2, y: size/2 - 7))
-                    path.addLine(to: CGPoint(x: size/2 - 8, y: size/2 - 1))
-                }
-                .stroke(Color.black, lineWidth: 1.5)
+                // X eyes
+                XShape()
+                    .stroke(Color.black, lineWidth: 1.5)
+                    .frame(width: 5, height: 5)
+                    .offset(x: -5, y: -4)
 
-                Path { path in
-                    path.move(to: CGPoint(x: size/2 + 2, y: size/2 - 7))
-                    path.addLine(to: CGPoint(x: size/2 + 8, y: size/2 - 1))
-                    path.move(to: CGPoint(x: size/2 + 8, y: size/2 - 7))
-                    path.addLine(to: CGPoint(x: size/2 + 2, y: size/2 - 1))
-                }
-                .stroke(Color.black, lineWidth: 1.5)
+                XShape()
+                    .stroke(Color.black, lineWidth: 1.5)
+                    .frame(width: 5, height: 5)
+                    .offset(x: 5, y: -4)
 
                 // Frown
-                Path { path in
-                    path.addArc(center: CGPoint(x: size/2, y: size/2 + 10),
-                               radius: 5,
-                               startAngle: .degrees(210),
-                               endAngle: .degrees(330),
-                               clockwise: false)
-                }
-                .stroke(Color.black, lineWidth: 1.5)
+                SmileArc(startAngle: .degrees(200), endAngle: .degrees(340))
+                    .stroke(Color.black, lineWidth: 1.5)
+                    .frame(width: 10, height: 10)
+                    .offset(y: 6)
             }
         }
+    }
+}
+
+// Custom shape for smile arc
+struct SmileArc: Shape {
+    let startAngle: Angle
+    let endAngle: Angle
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.addArc(
+            center: CGPoint(x: rect.midX, y: rect.midY),
+            radius: rect.width / 2,
+            startAngle: startAngle,
+            endAngle: endAngle,
+            clockwise: false
+        )
+        return path
+    }
+}
+
+// Custom shape for X
+struct XShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.move(to: CGPoint(x: rect.maxX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        return path
     }
 }
 
