@@ -75,8 +75,8 @@ class BoardNSView: NSView {
                     context.stroke(rect, width: 1)
 
                     if cell.isMine {
-                        // Draw mine
-                        if game.gameState == .lost {
+                        // Draw mine with red background only for triggered mine
+                        if cell.isTriggeredMine {
                             NSColor.red.setFill()
                             context.fill(rect)
                         }
@@ -145,6 +145,9 @@ class BoardNSView: NSView {
                     // Draw flag or question mark
                     if cell.state == .flagged {
                         drawFlag(in: context, at: rect)
+                        if cell.isWrongFlag {
+                            drawWrongMark(in: context, at: rect)
+                        }
                     } else if cell.state == .questioned {
                         let str = NSAttributedString(
                             string: "?",
@@ -223,6 +226,17 @@ class BoardNSView: NSView {
         context.setLineWidth(2)
         context.move(to: CGPoint(x: x + 5, y: y + 3))
         context.addLine(to: CGPoint(x: x + 12, y: y + 3))
+        context.strokePath()
+    }
+
+    private func drawWrongMark(in context: CGContext, at rect: CGRect) {
+        // Draw X over wrong flag
+        context.setStrokeColor(NSColor.red.cgColor)
+        context.setLineWidth(2)
+        context.move(to: CGPoint(x: rect.minX + 2, y: rect.minY + 2))
+        context.addLine(to: CGPoint(x: rect.maxX - 2, y: rect.maxY - 2))
+        context.move(to: CGPoint(x: rect.maxX - 2, y: rect.minY + 2))
+        context.addLine(to: CGPoint(x: rect.minX + 2, y: rect.maxY - 2))
         context.strokePath()
     }
 

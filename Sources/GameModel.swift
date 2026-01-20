@@ -59,6 +59,8 @@ struct Cell: Identifiable {
     var isMine: Bool = false
     var state: CellState = .hidden
     var adjacentMines: Int = 0
+    var isTriggeredMine: Bool = false
+    var isWrongFlag: Bool = false
 }
 
 class GameBoard: ObservableObject {
@@ -168,6 +170,7 @@ class GameBoard: ObservableObject {
         cells[row][col].state = .revealed
 
         if cells[row][col].isMine {
+            cells[row][col].isTriggeredMine = true
             gameOver()
             return
         }
@@ -240,11 +243,13 @@ class GameBoard: ObservableObject {
     private func gameOver() {
         gameState = .lost
         stopTimer()
-        // Reveal all mines
+        // Reveal all mines and mark wrong flags
         for row in 0..<rows {
             for col in 0..<columns {
-                if cells[row][col].isMine {
+                if cells[row][col].isMine && cells[row][col].state != .flagged {
                     cells[row][col].state = .revealed
+                } else if !cells[row][col].isMine && cells[row][col].state == .flagged {
+                    cells[row][col].isWrongFlag = true
                 }
             }
         }
