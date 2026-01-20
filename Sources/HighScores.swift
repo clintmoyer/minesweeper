@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 struct HighScoreEntry: Codable, Equatable {
     var name: String
@@ -28,11 +29,14 @@ class HighScores: ObservableObject {
     func setScore(for difficulty: Difficulty, name: String, time: Int) {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         let finalName = trimmedName.isEmpty ? defaultName : trimmedName
+
+        objectWillChange.send()
         scores[difficulty.name] = HighScoreEntry(name: finalName, time: time)
         save()
     }
 
     func reset() {
+        objectWillChange.send()
         scores = [:]
         save()
     }
@@ -40,6 +44,7 @@ class HighScores: ObservableObject {
     private func save() {
         if let data = try? JSONEncoder().encode(scores) {
             UserDefaults.standard.set(data, forKey: storageKey)
+            UserDefaults.standard.synchronize()
         }
     }
 

@@ -45,6 +45,27 @@ struct HighScoreEntryDialog: View {
     }
 }
 
+struct HighScoreRow: View {
+    let difficulty: Difficulty
+    let entry: HighScoreEntry?
+
+    private var score: HighScoreEntry {
+        entry ?? HighScoreEntry(name: "Anonymous", time: 999)
+    }
+
+    var body: some View {
+        HStack {
+            Text("\(difficulty.name):")
+                .frame(width: 100, alignment: .leading)
+            Text("\(score.time) seconds")
+                .frame(width: 100, alignment: .leading)
+            Text(score.name)
+                .frame(width: 100, alignment: .leading)
+        }
+        .font(.system(.body, design: .monospaced))
+    }
+}
+
 struct HighScoresView: View {
     @ObservedObject var highScores: HighScores
     let onReset: () -> Void
@@ -56,18 +77,9 @@ struct HighScoresView: View {
                 .font(.headline)
 
             VStack(alignment: .leading, spacing: 8) {
-                ForEach(Difficulty.allCases, id: \.name) { difficulty in
-                    let score = highScores.getScore(for: difficulty)
-                    HStack {
-                        Text("\(difficulty.name):")
-                            .frame(width: 100, alignment: .leading)
-                        Text("\(score.time) seconds")
-                            .frame(width: 100, alignment: .leading)
-                        Text(score.name)
-                            .frame(width: 100, alignment: .leading)
-                    }
-                    .font(.system(.body, design: .monospaced))
-                }
+                HighScoreRow(difficulty: .beginner, entry: highScores.scores["Beginner"])
+                HighScoreRow(difficulty: .intermediate, entry: highScores.scores["Intermediate"])
+                HighScoreRow(difficulty: .expert, entry: highScores.scores["Expert"])
             }
             .padding()
             .background(Color.white)
