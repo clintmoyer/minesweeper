@@ -3,7 +3,7 @@ import AppKit
 
 struct GameBoardView: View {
     @ObservedObject var game: GameBoard
-    let cellSize: CGFloat = 16
+    let cellSize: CGFloat = 24
 
     var body: some View {
         ClickableBoard(game: game, cellSize: cellSize)
@@ -32,7 +32,7 @@ struct ClickableBoard: NSViewRepresentable {
 
 class BoardNSView: NSView {
     var game: GameBoard!
-    var cellSize: CGFloat = 16
+    var cellSize: CGFloat = 24
     var pressedCell: (row: Int, col: Int)? = nil
 
     override var acceptsFirstResponder: Bool { true }
@@ -85,7 +85,7 @@ class BoardNSView: NSView {
                         // Draw number
                         let number = "\(cell.adjacentMines)"
                         let color = numberColors[cell.adjacentMines] ?? NSColor.black
-                        let font = NSFont.monospacedSystemFont(ofSize: 12, weight: .bold)
+                        let font = NSFont.monospacedSystemFont(ofSize: 16, weight: .bold)
                         let attrs: [NSAttributedString.Key: Any] = [
                             .font: font,
                             .foregroundColor: color
@@ -115,15 +115,17 @@ class BoardNSView: NSView {
                         bgColor.setFill()
                         context.fill(rect)
 
+                        let borderWidth: CGFloat = 3
+
                         // Light border (top-left)
                         lightColor.setFill()
                         let lightPath = CGMutablePath()
                         lightPath.move(to: CGPoint(x: x, y: y))
                         lightPath.addLine(to: CGPoint(x: x, y: y + cellSize))
                         lightPath.addLine(to: CGPoint(x: x + cellSize, y: y + cellSize))
-                        lightPath.addLine(to: CGPoint(x: x + cellSize - 2, y: y + cellSize - 2))
-                        lightPath.addLine(to: CGPoint(x: x + 2, y: y + cellSize - 2))
-                        lightPath.addLine(to: CGPoint(x: x + 2, y: y + 2))
+                        lightPath.addLine(to: CGPoint(x: x + cellSize - borderWidth, y: y + cellSize - borderWidth))
+                        lightPath.addLine(to: CGPoint(x: x + borderWidth, y: y + cellSize - borderWidth))
+                        lightPath.addLine(to: CGPoint(x: x + borderWidth, y: y + borderWidth))
                         lightPath.closeSubpath()
                         context.addPath(lightPath)
                         context.fillPath()
@@ -134,9 +136,9 @@ class BoardNSView: NSView {
                         darkPath.move(to: CGPoint(x: x + cellSize, y: y + cellSize))
                         darkPath.addLine(to: CGPoint(x: x + cellSize, y: y))
                         darkPath.addLine(to: CGPoint(x: x, y: y))
-                        darkPath.addLine(to: CGPoint(x: x + 2, y: y + 2))
-                        darkPath.addLine(to: CGPoint(x: x + cellSize - 2, y: y + 2))
-                        darkPath.addLine(to: CGPoint(x: x + cellSize - 2, y: y + cellSize - 2))
+                        darkPath.addLine(to: CGPoint(x: x + borderWidth, y: y + borderWidth))
+                        darkPath.addLine(to: CGPoint(x: x + cellSize - borderWidth, y: y + borderWidth))
+                        darkPath.addLine(to: CGPoint(x: x + cellSize - borderWidth, y: y + cellSize - borderWidth))
                         darkPath.closeSubpath()
                         context.addPath(darkPath)
                         context.fillPath()
@@ -152,7 +154,7 @@ class BoardNSView: NSView {
                         let str = NSAttributedString(
                             string: "?",
                             attributes: [
-                                .font: NSFont.boldSystemFont(ofSize: 12),
+                                .font: NSFont.boldSystemFont(ofSize: 16),
                                 .foregroundColor: NSColor.black
                             ]
                         )
@@ -173,7 +175,8 @@ class BoardNSView: NSView {
     private func drawMine(in context: CGContext, at rect: CGRect) {
         let centerX = rect.midX
         let centerY = rect.midY
-        let radius: CGFloat = 4
+        let scale = rect.width / 16.0
+        let radius: CGFloat = 4 * scale
 
         // Mine body
         context.setFillColor(NSColor.black.cgColor)
@@ -182,14 +185,15 @@ class BoardNSView: NSView {
 
         // Spikes
         context.setStrokeColor(NSColor.black.cgColor)
-        context.setLineWidth(2)
+        context.setLineWidth(2 * scale)
 
+        let spikeLength = 6 * scale
         for i in 0..<4 {
             let angle = CGFloat(i) * .pi / 4
-            let x1 = centerX + cos(angle) * 6
-            let y1 = centerY + sin(angle) * 6
-            let x2 = centerX - cos(angle) * 6
-            let y2 = centerY - sin(angle) * 6
+            let x1 = centerX + cos(angle) * spikeLength
+            let y1 = centerY + sin(angle) * spikeLength
+            let x2 = centerX - cos(angle) * spikeLength
+            let y2 = centerY - sin(angle) * spikeLength
             context.move(to: CGPoint(x: x1, y: y1))
             context.addLine(to: CGPoint(x: x2, y: y2))
         }
@@ -197,46 +201,50 @@ class BoardNSView: NSView {
 
         // Shine
         context.setFillColor(NSColor.white.cgColor)
-        context.fillEllipse(in: CGRect(x: centerX - 2, y: centerY + 1, width: 2, height: 2))
+        let shineSize = 2 * scale
+        context.fillEllipse(in: CGRect(x: centerX - shineSize, y: centerY + scale, width: shineSize, height: shineSize))
     }
 
     private func drawFlag(in context: CGContext, at rect: CGRect) {
         let x = rect.minX
         let y = rect.minY
+        let scale = rect.width / 16.0
 
         // Pole
         context.setStrokeColor(NSColor.black.cgColor)
-        context.setLineWidth(1)
-        context.move(to: CGPoint(x: x + 9, y: y + 3))
-        context.addLine(to: CGPoint(x: x + 9, y: y + 12))
+        context.setLineWidth(1 * scale)
+        context.move(to: CGPoint(x: x + 9 * scale, y: y + 3 * scale))
+        context.addLine(to: CGPoint(x: x + 9 * scale, y: y + 13 * scale))
         context.strokePath()
 
         // Flag
         context.setFillColor(NSColor.red.cgColor)
         let flagPath = CGMutablePath()
-        flagPath.move(to: CGPoint(x: x + 4, y: y + 12))
-        flagPath.addLine(to: CGPoint(x: x + 9, y: y + 10))
-        flagPath.addLine(to: CGPoint(x: x + 4, y: y + 8))
+        flagPath.move(to: CGPoint(x: x + 4 * scale, y: y + 13 * scale))
+        flagPath.addLine(to: CGPoint(x: x + 9 * scale, y: y + 10 * scale))
+        flagPath.addLine(to: CGPoint(x: x + 4 * scale, y: y + 7 * scale))
         flagPath.closeSubpath()
         context.addPath(flagPath)
         context.fillPath()
 
         // Base
         context.setStrokeColor(NSColor.black.cgColor)
-        context.setLineWidth(2)
-        context.move(to: CGPoint(x: x + 5, y: y + 3))
-        context.addLine(to: CGPoint(x: x + 12, y: y + 3))
+        context.setLineWidth(2 * scale)
+        context.move(to: CGPoint(x: x + 5 * scale, y: y + 3 * scale))
+        context.addLine(to: CGPoint(x: x + 12 * scale, y: y + 3 * scale))
         context.strokePath()
     }
 
     private func drawWrongMark(in context: CGContext, at rect: CGRect) {
         // Draw X over wrong flag
+        let scale = rect.width / 16.0
+        let inset = 3 * scale
         context.setStrokeColor(NSColor.red.cgColor)
-        context.setLineWidth(2)
-        context.move(to: CGPoint(x: rect.minX + 2, y: rect.minY + 2))
-        context.addLine(to: CGPoint(x: rect.maxX - 2, y: rect.maxY - 2))
-        context.move(to: CGPoint(x: rect.maxX - 2, y: rect.minY + 2))
-        context.addLine(to: CGPoint(x: rect.minX + 2, y: rect.maxY - 2))
+        context.setLineWidth(2 * scale)
+        context.move(to: CGPoint(x: rect.minX + inset, y: rect.minY + inset))
+        context.addLine(to: CGPoint(x: rect.maxX - inset, y: rect.maxY - inset))
+        context.move(to: CGPoint(x: rect.maxX - inset, y: rect.minY + inset))
+        context.addLine(to: CGPoint(x: rect.minX + inset, y: rect.maxY - inset))
         context.strokePath()
     }
 
