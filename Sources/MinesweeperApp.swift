@@ -6,7 +6,9 @@ struct MinesweeperApp: App {
         WindowGroup {
             ContentView()
         }
-        .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)
+        .commands {
+            CommandGroup(replacing: .newItem) { }
+        }
     }
 }
